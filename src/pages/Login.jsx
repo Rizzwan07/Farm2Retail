@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Sprout, ShoppingCart, Landmark, ArrowRight, Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
 
@@ -16,6 +16,13 @@ function Login() {
   const [selectedRole, setSelectedRole] = useState('farmer');
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // If a demo role is already stored, go straight to the dashboard.
+  useEffect(() => {
+    if (sessionStorage.getItem('demoRole')) {
+      navigate('/dashboard');
+    }
+  }, [navigate]);
 
   function validateEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -99,7 +106,7 @@ function Login() {
             </div>
             {errors.email && (
               <div id="email-error" className="mt-1.5 flex items-center gap-1.5 text-sm text-red-600" role="alert">
-                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{errors.email}</span>
               </div>
             )}
@@ -140,7 +147,7 @@ function Login() {
             </div>
             {errors.password && (
               <div id="password-error" className="mt-1.5 flex items-center gap-1.5 text-sm text-red-600" role="alert">
-                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{errors.password}</span>
               </div>
             )}

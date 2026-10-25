@@ -1,7 +1,7 @@
 # PROJECT_CONTEXT.md — Farm2Retail Development State
 
-> Last updated: 2026-10-19T02:15 IST
-> Last verified build: ✅ `npm run build` passed (0 errors, 0 warnings)
+> Last updated: 2026-10-25T23:15 IST
+> Last verified build: ✅ `npm run build` passed (0 errors, 0 warnings) — Vite 8.3.4 production build
 > Last verified lint: ✅ `npm run lint` passed (0 errors, 0 warnings)
 
 ---
@@ -20,6 +20,18 @@
 | @vitejs/plugin-react | ^6.1.1   | React Fast Refresh for Vite   |
 
 No TypeScript. No backend. No state management library.
+
+## Latest Verified Work
+
+- Inspected the application entry point, router, dashboard shell, shared
+  components, all route-level pages, mock data, soil analysis utility, Vite
+  configuration, ESLint configuration, and package manifest.
+- Reworked `README.md` into a complete project guide with setup steps,
+  role-based features, routes, architecture diagram, ER-style relationship
+  diagram, project structure, scripts, and prototype limitations.
+- No application source code or dependencies were changed in this
+  documentation update.
+- Removed the README table of contents at the user's request.
 
 ---
 
@@ -81,7 +93,7 @@ farm2retail/
 |--------------------------|-------------------|--------------------------------------------|
 | `/`                      | HomePage          | Public landing page                        |
 | `/login`                 | Login             | Demo role selection page (no auth)         |
-| `/dashboard`             | DashboardLayout   | Layout wrapper (Outlet renders children)   |
+| `/dashboard` (+ nested)  | DashboardLayout   | Layout wrapper; requires stored `demoRole` in sessionStorage, else redirects to `/login` |
 | `/dashboard` (index)     | DashboardHome     | Role-specific welcome + stat cards         |
 | `/dashboard/my-harvests` | MyHarvests        | Farmer: create/list own harvests           |
 | `/dashboard/browse-harvests` | BrowseHarvests | Retailer: search/filter/browse harvests    |
@@ -441,8 +453,13 @@ Slugs still using placeholder:
 | Invalid email handling | ✅ Verified | Shows "valid email address" error inline |
 | Empty field handling | ✅ Verified | Shows "required" errors for email/password |
 | Password visibility toggle | ✅ Verified | Eye/EyeOff icons work, aria attributes correct |
+| Dashboard role init from session | ✅ Verified | DashboardLayout initializes currentRole from sessionStorage.demoRole, defaults to 'farmer' |
+| Route protection | ✅ Verified | /dashboard and all nested routes redirect to /login when no stored role; / and /login stay public |
 | Landing page Sign in link | ✅ Verified | Navigates to /login correctly |
+| Browse Marketplace CTA | ✅ Verified | Now navigates to /login instead of /dashboard/browse-harvests |
 | Back to Homepage link | ✅ Verified | Returns to landing page |
+| Role switching persistence | ✅ Verified | Topbar role switcher writes demoRole to sessionStorage and navigates to /dashboard |
+| Sign-out | ✅ Verified | Topbar Sign out button clears sessionStorage.demoRole, resets role, navigates to /login |
 
 **Legend**: ✅ Verified = manually tested via code inspection and/or browser execution.  
 All features implemented in code; the table above reflects manual verification of critical paths.
@@ -468,7 +485,7 @@ npm run lint — exit code 0
 
 ## Next Steps (Suggested — Not Started)
 
-1. Consider adding Context API for `currentRole` once more components need it.
-2. Add automated tests (unit/integration) for critical workflows.
-3. Add persistence (localStorage/IndexedDB) to survive browser refresh.
-4. Consider adding real ML model integration for Soil Intelligence (requires backend).
+1. Add automated tests (unit/integration) for critical workflows.
+2. Add persistence (localStorage/IndexedDB) to survive browser refresh.
+3. Consider adding real ML model integration for Soil Intelligence (requires backend).
+4. Address remaining audit issues (double-submit guard, duplicate-order guard, lease endDate/endLease, cross-role identity filtering).

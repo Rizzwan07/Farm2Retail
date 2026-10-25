@@ -81,7 +81,7 @@ function HomePage() {
         </p>
         <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
           <Link
-            to="/dashboard/browse-harvests"
+            to="/login"
             className="inline-flex items-center justify-center gap-2 bg-green-primary text-white px-6 py-3 rounded-lg font-medium hover:bg-green-dark transition-colors"
           >
             Browse Marketplace

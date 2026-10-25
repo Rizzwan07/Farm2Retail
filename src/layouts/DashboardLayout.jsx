@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Navigate, Outlet, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import { sampleHarvests } from '../data/harvests';
@@ -96,7 +96,8 @@ const sampleProperties = [
 
 function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [currentRole, setCurrentRole] = useState('farmer');
+  const storedRole = sessionStorage.getItem('demoRole');
+  const [currentRole, setCurrentRole] = useState(storedRole || 'farmer');
   const [harvests, setHarvests] = useState(sampleHarvests);
   const [bookings, setBookings] = useState([]);
   const [requirements, setRequirements] = useState(sampleRequirements);
@@ -107,11 +108,24 @@ function DashboardLayout() {
   const [leases, setLeases] = useState([]);
   const navigate = useNavigate();
 
-  // When the role changes, navigate back to the dashboard home
+  // Require a stored demo role to open any dashboard page.
+  // Direct URL access without a stored role is redirected to sign-in.
+  if (!storedRole) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // When the role changes, persist it, navigate back to the dashboard home
   // so the user doesn't stay on a page that belongs to another role
   function handleRoleChange(newRole) {
+    sessionStorage.setItem('demoRole', newRole);
     setCurrentRole(newRole);
     navigate('/dashboard');
+  }
+
+  function handleSignOut() {
+    sessionStorage.removeItem('demoRole');
+    setCurrentRole('farmer');
+    navigate('/login');
   }
 
   return (
@@ -129,6 +143,7 @@ function DashboardLayout() {
           onMenuClick={() => setSidebarOpen(true)}
           currentRole={currentRole}
           onRoleChange={handleRoleChange}
+          onSignOut={handleSignOut}
         />
 
         {/* Page content — renders the matched child route */}
