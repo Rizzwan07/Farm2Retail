@@ -3,6 +3,7 @@ import { Navigate, Outlet, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import { sampleHarvests } from '../data/harvests';
+import { clearSession } from '../utils/auth';
 
 // Sample crop requirements data
 const sampleRequirements = [
@@ -51,7 +52,7 @@ const sampleProperties = [
     waterAvailability: 'Good',
     permittedCrops: 'Grapes, Tomatoes, Onions, Pomegranate',
     description: 'Well-maintained farmland with excellent road access. Ideal for horticulture crops. Soil tested recently.',
-    images: [],
+    images: ['https://images.unsplash.com/photo-1626228666783-5e3251db91b6?w=800&h=600&fit=crop'],
     landowner: 'Rajesh Landowner',
     status: 'Available',
     createdAt: '2026-10-05',
@@ -69,7 +70,7 @@ const sampleProperties = [
     waterAvailability: 'Excellent',
     permittedCrops: 'Rice, Wheat, Sugarcane, Vegetables',
     description: 'Prime agricultural land near canal. High water table. Suitable for multiple cropping seasons.',
-    images: [],
+    images: ['https://images.unsplash.com/photo-1574518371418-2c157c9dc5b3?w=800&h=600&fit=crop'],
     landowner: 'Rajesh Landowner',
     status: 'Available',
     createdAt: '2026-10-08',
@@ -87,7 +88,7 @@ const sampleProperties = [
     waterAvailability: 'Moderate',
     permittedCrops: 'Turmeric, Banana, Coconut, Vegetables',
     description: 'Organic certified land. Perfect for high-value spices and fruits. Certification valid till 2027.',
-    images: [],
+    images: ['https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&h=600&fit=crop'],
     landowner: 'Rajesh Landowner',
     status: 'Available',
     createdAt: '2026-10-12',
@@ -97,6 +98,7 @@ const sampleProperties = [
 function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const storedRole = sessionStorage.getItem('demoRole');
+  const storedName = sessionStorage.getItem('demoName') || '';
   const [currentRole, setCurrentRole] = useState(storedRole || 'farmer');
   const [harvests, setHarvests] = useState(sampleHarvests);
   const [bookings, setBookings] = useState([]);
@@ -123,7 +125,7 @@ function DashboardLayout() {
   }
 
   function handleSignOut() {
-    sessionStorage.removeItem('demoRole');
+    clearSession();
     setCurrentRole('farmer');
     navigate('/login');
   }
@@ -144,11 +146,12 @@ function DashboardLayout() {
           currentRole={currentRole}
           onRoleChange={handleRoleChange}
           onSignOut={handleSignOut}
+          displayName={storedName}
         />
 
         {/* Page content — renders the matched child route */}
         <main className="flex-1 p-4 sm:p-6 overflow-y-auto">
-          <Outlet context={{ currentRole, harvests, setHarvests, bookings, setBookings, requirements, setRequirements, bids, setBids, orders, setOrders, properties, setProperties, leaseApplications, setLeaseApplications, leases, setLeases }} />
+          <Outlet context={{ currentRole, displayName: storedName, harvests, setHarvests, bookings, setBookings, requirements, setRequirements, bids, setBids, orders, setOrders, properties, setProperties, leaseApplications, setLeaseApplications, leases, setLeases }} />
         </main>
       </div>
     </div>

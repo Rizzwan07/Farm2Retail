@@ -99,15 +99,17 @@ npm run dev -- --port 5174
 
 ## Running the Application
 
-1. Open the home page and select **Get Started** or **Sign In**
-2. Enter any valid-looking email and a password with **at least 6 characters**
+1. Open the home page and select **Browse Marketplace** or **Sign Up**
+2. Enter any valid-looking email and a password with **at least 6 characters**, or select **Sign Up** to create a registered demo account
 3. Select a demo role: **Farmer**, **Retailer**, or **Landowner**
 4. Use the dashboard sidebar to navigate features for that role
 5. Use the role selector in the topbar to switch workspaces
 6. Select **Sign Out** to clear the demo role and return to the login page
 
 **Demo Notes:**
-- Any email/password combination works in demo mode
+- Any email/password combination works in demo mode (unregistered emails)
+- Registered accounts verify passwords using salted SHA-256 hashes via Web Crypto API
+- Registered account profiles persist in `localStorage` across browser refreshes
 - The selected role is stored in `sessionStorage` under `demoRole`
 - Dashboard records are held in React memory and reset on page refresh
 - Prices and totals are illustrative — no payment gateway exists
@@ -116,8 +118,8 @@ npm run dev -- --port 5174
 
 ## How the Application Works
 
-### Login & Role Access
-`Login.jsx` validates the demo form and stores the selected role in `sessionStorage`. `DashboardLayout.jsx` checks for that stored role before rendering dashboard routes and redirects to `/login` when missing.
+### Login, Sign Up & Role Access
+`Login.jsx` validates the demo form and stores the selected role in `sessionStorage`. If the email belongs to a registered account (stored in `localStorage`), the password is verified against a salted SHA-256 hash. Unregistered emails use legacy demo-mode behavior (any credentials accepted). `SignUp.jsx` creates new demo accounts via `src/utils/auth.js`, hashing passwords with the Web Crypto API before storing them. `DashboardLayout.jsx` checks for a stored role before rendering dashboard routes and redirects to `/login` when missing.
 
 ### Shared Dashboard State
 `DashboardLayout.jsx` initializes all marketplace entities with `useState`:
@@ -152,7 +154,7 @@ Defined in `src/index.css` under `@theme`:
 
 ```mermaid
 flowchart TD
-    Browser[User Browser] --> Public[Home & Login Pages]
+    Browser[User Browser] --> Public["Home, Login & Sign Up Pages"]
     Public --> Router[React Router v7]
     Router --> Guard{Demo role in\nsessionStorage?}
     Guard -- No --> Login[Redirect to /login]
@@ -164,12 +166,13 @@ flowchart TD
     Outlet --> Retailer[Retailer Features]
     Outlet --> Landowner[Landowner Features]
     Shell --> State[React useState\nShared Marketplace State]
-    State --> SeedData[JavaScript Seed Data\nharvests.js + inline]
-    Outlet --> Soil[Mock Soil Analysis\nsrc/utils/soilAnalysis.js]
+    State --> SeedData["JavaScript Seed Data\nharvests.js + inline"]
+    Public --> LocalStorage["localStorage\nRegistered Accounts"]
+    Outlet --> Soil["Mock Soil Analysis\nsrc/utils/soilAnalysis.js"]
     State -. browser refresh clears data .-> Reset[Fresh Demo State]
 ```
 
-**All application processing happens in the browser.** The only browser storage used is `sessionStorage` for the selected demo role.
+**All application processing happens in the browser.** Browser storage used: `sessionStorage` for the active demo role and display name; `localStorage` for registered account profiles (with hashed passwords).
 
 ---
 
@@ -202,6 +205,7 @@ erDiagram
 |-------|---------|-------------|
 | `/` | Public landing page | All |
 | `/login` | Demo role selection & sign-in | All |
+| `/signup` | New account registration | All |
 | `/dashboard` | Role-specific dashboard home | All |
 | `/dashboard/my-harvests` | Farmer harvest listings | Farmer |
 | `/dashboard/browse-harvests` | Retailer harvest search | Retailer |
@@ -241,6 +245,7 @@ Farm2Retail/
 │   ├── pages/                      # Route-level components
 │   │   ├── HomePage.jsx            # Landing page
 │   │   ├── Login.jsx               # Demo sign-in with role selection
+│   │   ├── SignUp.jsx              # New account registration
 │   │   ├── DashboardHome.jsx       # Dashboard overview
 │   │   ├── MyHarvests.jsx          # Farmer: list/manage harvests
 │   │   ├── BrowseHarvests.jsx      # Retailer: search harvests
@@ -259,6 +264,7 @@ Farm2Retail/
 │   │   ├── SoilIntelligence.jsx    # Farmer: soil analysis tool
 │   │   └── PlaceholderPage.jsx     # Unimplemented route fallback
 │   ├── utils/                      # Helper functions
+│   │   ├── auth.js                 # Demo account registration & hashing
 │   │   └── soilAnalysis.js         # Mock soil intelligence adapter
 │   ├── App.jsx                     # Router configuration
 │   ├── main.jsx                    # React entry point
@@ -308,8 +314,10 @@ npm run build
 ## Limitations
 
 - **No backend, API, database, server-side session, or real authentication**
+- **Browser-side account registration is a frontend-only demo** — registered accounts are stored in `localStorage` with salted SHA-256 password hashes (Web Crypto API). This prevents casual plaintext inspection but **does not provide production-grade security**. Never rely on client-side hashing alone in a real application; always use a server with a proper key-derivation function (bcrypt, scrypt, Argon2).
 - All marketplace data (harvests, bookings, requirements, bids, orders, properties, applications, leases) stored only in React memory — **resets on page refresh**
-- Demo role is the only value persisted in `sessionStorage`
+- Registered account profiles persist across refreshes via `localStorage`; marketplace data does not
+- Demo role is stored in `sessionStorage` under `demoRole`
 - Prices and booking totals are illustrative — **no payment gateway or refund workflow**
 - Soil Intelligence uses regional hardcoded mappings and suitability scores — **not a laboratory test or ML model**
 - Ending a lease displays a demo alert rather than updating lease state

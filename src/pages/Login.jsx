@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Sprout, ShoppingCart, Landmark, ArrowRight, Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
+import { findAccountByEmail, verifyAccount, startSession } from '../utils/auth';
 
 const roleOptions = [
   { value: 'farmer', label: 'Farmer', description: 'List harvests, manage bookings, bid on crops, find farmland, check soil data', icon: Sprout },
@@ -10,8 +11,8 @@ const roleOptions = [
 
 function Login() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('rizz1@email.com');
+  const [password, setPassword] = useState('pass@1234');
   const [showPassword, setShowPassword] = useState(false);
   const [selectedRole, setSelectedRole] = useState('farmer');
   const [errors, setErrors] = useState({});
@@ -44,16 +45,35 @@ function Login() {
     return Object.keys(newErrors).length === 0;
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     if (!validateForm()) return;
     setIsSubmitting(true);
 
-    // Simulate sign-in delay
-    setTimeout(() => {
-      sessionStorage.setItem('demoRole', selectedRole);
+    // Check if this email belongs to a registered account
+    const registeredAccount = findAccountByEmail(email);
+
+    if (registeredAccount) {
+      // Verify credentials against the stored hash
+      const result = await verifyAccount(email, password);
+
+      if (!result.success) {
+        setErrors({ password: result.error });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Establish session with the registered account's role and name
+      startSession(result.account);
       navigate('/dashboard');
-    }, 500);
+    } else {
+      // No registered account found — use the legacy demo-mode behavior:
+      // accept any credentials and use the selected role.
+      setTimeout(() => {
+        sessionStorage.setItem('demoRole', selectedRole);
+        navigate('/dashboard');
+      }, 500);
+    }
   }
 
   function getInputClass(name) {
@@ -224,6 +244,17 @@ function Login() {
               'Sign In'
             )}
           </button>
+
+          {/* Link to Sign Up */}
+          <div className="text-center text-sm text-gray-600">
+            Don&apos;t have an account?{' '}
+            <Link
+              to="/signup"
+              className="font-semibold text-green-primary hover:text-green-dark no-underline"
+            >
+              Sign up
+            </Link>
+          </div>
 
           {/* Back to Homepage */}
           <div className="text-center">

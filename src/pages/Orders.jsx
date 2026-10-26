@@ -158,9 +158,6 @@ function Orders() {
                 {order.status === 'Delivered' && (
                   <span className="flex-1 sm:flex-none px-6 py-3 bg-gray-100 text-gray-500 rounded-lg text-center text-sm font-medium">Order Completed</span>
                 )}
-                <button className="flex-1 sm:flex-none px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-                  View Details
-                </button>
               </div>
             </div>
           </div>

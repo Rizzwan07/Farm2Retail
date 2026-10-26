@@ -1,7 +1,7 @@
 # PROJECT_CONTEXT.md — Farm2Retail Development State
 
-> Last updated: 2026-10-25T23:15 IST
-> Last verified build: ✅ `npm run build` passed (0 errors, 0 warnings) — Vite 8.3.4 production build
+> Last updated: 2026-10-26T12:03 IST
+> Last verified build: ✅ `npm run build` passed (0 errors, 0 warnings) — Vite 8.3.4, 1955 modules, dist 453.30 kB gzip 117.25 kB
 > Last verified lint: ✅ `npm run lint` passed (0 errors, 0 warnings)
 
 ---
@@ -70,8 +70,10 @@ farm2retail/
 │   │   ├── PlaceholderPage.jsx
 │   │   ├── PropertyDetails.jsx
 │   │   ├── RetailerBookings.jsx
+│   │   ├── SignUp.jsx
 │   │   └── SoilIntelligence.jsx
 │   ├── utils/
+│   │   ├── auth.js
 │   │   └── soilAnalysis.js
 │   ├── App.jsx
 │   ├── main.jsx
@@ -93,6 +95,7 @@ farm2retail/
 |--------------------------|-------------------|--------------------------------------------|
 | `/`                      | HomePage          | Public landing page                        |
 | `/login`                 | Login             | Demo role selection page (no auth)         |
+| `/signup`                | SignUp            | New account registration page              |
 | `/dashboard` (+ nested)  | DashboardLayout   | Layout wrapper; requires stored `demoRole` in sessionStorage, else redirects to `/login` |
 | `/dashboard` (index)     | DashboardHome     | Role-specific welcome + stat cards         |
 | `/dashboard/my-harvests` | MyHarvests        | Farmer: create/list own harvests           |
@@ -308,23 +311,99 @@ Dashboard, My Properties, Lease Applications, Lease Management
 
 ---
 
-### ✅ Milestone 13 — Sign-In Form (NEW)
-- **Login.jsx** — Rebuilt `/login` page as a proper sign-in form:
+### ✅ Milestone 13 — Sign-In Form (UPDATED)
+- **Login.jsx** — `/login` sign-in form:
   - Email field with basic format validation, required field validation, inline error messages
   - Password field with show/hide toggle, required validation, minimum length (6 chars)
   - Role selection via radio cards: Farmer, Retailer / Business, Landowner
   - Submit button with loading spinner, disabled state during submission
   - Client-side validation: email format, required fields, password minimum length
   - Inline error messages with icons, real-time clearing on input
-  - On valid submission: stores selected role in `sessionStorage`, navigates to `/dashboard`
-  - No demo disclaimer UI; subtle footer note: "Demo mode — any credentials work"
+  - **Registered account detection**: if the email belongs to a registered account (in localStorage), the password is verified against the stored salted SHA-256 hash. If verification fails, an "Incorrect password" error is shown. Unregistered emails continue to use legacy demo-mode (any credentials accepted).
+  - On valid submission: stores selected role (+ display name/email for registered accounts) in `sessionStorage`, navigates to `/dashboard`
+  - Subtle footer note: "Demo mode — any credentials work"
+  - "Don't have an account? Sign up" link to `/signup`
   - Back to Homepage link
-  - No password storage; only role stored in sessionStorage
-  - No fake credential verification; any input accepted on valid form
-- **Integration**: Uses existing role-switching via `sessionStorage` + DashboardLayout role switcher
+- **Integration**: Uses `verifyAccount`, `findAccountByEmail`, `startSession` from `src/utils/auth.js`
 - **Design**: Consistent with forest-green design, responsive, accessible (ARIA labels, focus states)
 
 ---
+
+### ✅ Milestone 15 — Sign-Up Flow & Demo Account System (NEW)
+- **Auth Utility** (`src/utils/auth.js`):
+  - `registerAccount()` — creates account with salted SHA-256 password hash (Web Crypto API)
+  - `verifyAccount()` — verifies credentials against stored hash
+  - `findAccountByEmail()` — case-insensitive account lookup
+  - `startSession()` — stores role, display name, email in sessionStorage
+  - `clearSession()` — clears session without deleting registered accounts
+  - Accounts stored in `localStorage` under `farm2retail_accounts`
+  - Passwords never stored in plaintext; each account has a unique 16-byte hex salt
+- **SignUp.jsx** (`/signup`) — New account registration page:
+  - Full name, email, password, confirm password fields with icons
+  - Show/hide toggle on both password fields
+  - Role selection via radio cards (identical to Login page)
+  - "Create Account" button with loading spinner
+  - Client-side validation: all fields required, email format, password ≥ 6 chars, password match
+  - Duplicate email check against localStorage
+  - Success banner with redirect to dashboard
+  - "Already have an account? Sign in" link to `/login`
+  - Back to Homepage link
+  - On success: creates hashed account → `startSession()` → navigates to `/dashboard`
+- **Login.jsx** (updated):
+  - Added "Don't have an account? Sign up" link to `/signup`
+  - Registered emails now verify password hash before login
+  - Unregistered emails continue legacy demo-mode (any credentials accepted)
+  - Uses `findAccountByEmail`, `verifyAccount`, `startSession` from auth utility
+- **App.jsx** (updated):
+  - Added `<Route path="/signup" element={<SignUp />} />`
+  - Imported SignUp component
+- **DashboardLayout.jsx** (updated):
+  - Uses `clearSession()` from auth utility for sign-out (clears demoRole, demoName, demoEmail)
+  - Reads `demoName` from sessionStorage, passes as `displayName` to Topbar and Outlet context
+- **Topbar.jsx** (updated):
+  - Accepts `displayName` prop
+  - Displays user's full name with UserCircle icon when available (registered accounts)
+  - Imported `UserCircle` from lucide-react
+- **DashboardHome.jsx** (updated):
+  - Shows personalized "Welcome, {name}" heading for registered accounts
+  - Falls back to generic "{Role} Dashboard" heading for demo-mode users
+- **README.md** (updated):
+  - Documented sign-up flow, localStorage accounts, hashing approach
+  - Added security disclaimer: browser-side hashing is not production authentication
+  - Updated route table, architecture diagram, project structure, running instructions
+- **No new npm dependencies added**
+- **No TypeScript files created**
+- **No backend, database, or auth provider added**
+
+---
+
+### ✅ Milestone 14 — UI/UX Fixes & Loophole Closure (NEW)
+
+- **Soil Intelligence** (`SoilIntelligence.jsx`):
+  - Removed both amber "Demo Only — Not a Real ML Prediction" banners (form page + results page)
+  - Removed unused `Info` import
+  - Retained genuine agricultural disclaimer in results panel (informative, not a demo notice)
+- **Dead buttons removed**:
+  - `Orders.jsx`: Removed non-functional "View Details" button
+  - `LeaseManagement.jsx`: Removed non-functional farmer "View Details" button and unused `Eye` import
+- **Duplicate-order guard** (`ManageBids.jsx`):
+  - Added `processing` state to prevent double-clicks
+  - Accepting an already-Accepted bid now does nothing (no duplicate order creation)
+  - Rejecting a non-Pending bid is blocked
+  - Accept/Reject buttons show disabled + "Processing..." state during action
+- **Double-booking guard** (`HarvestDetails.jsx`):
+  - Added `booking` state; Confirm Booking button disabled + "Processing..." during submission
+  - Prevents rapid double-click creating duplicate bookings and double-decrementing stock
+- **Functional "End Lease Early"** (`LeaseManagement.jsx`):
+  - Added `setLeases` and `setProperties` to context destructuring
+  - `endLease()` now marks lease status as `Ended` and sets property status back to `Available`
+- **Router navigation** (`CropRequirements.jsx`):
+  - Replaced `window.location.href` full-page reload with `useNavigate()` + `navigate()` for "Manage Bids" button
+  - Added `useNavigate` import
+
+---
+
+- **Farmer → My Bookings** (`/dashboard/my-bookings`):
 - **Farmer → My Bookings** (`/dashboard/my-bookings`):
   - Table view of bookings on farmer's harvests with crop, retailer, quantity, total, status, date
   - Empty state with helpful guidance
@@ -415,9 +494,9 @@ Slugs still using placeholder:
 
 - `earth-brown` and `earth-light` design tokens are defined but not yet used in any component.
 - No automated tests exist. All verification is manual + `npm run build` + `npm run lint`.
-- **Soil Intelligence uses mock data only** — no ML model or inference interface exists in the repository. The adapter (`src/utils/soilAnalysis.js`) is a pure frontend mock using regional soil maps and predefined suitability scores. All results display "Demo Only — Not a Real ML Prediction" notices.
+- **Soil Intelligence uses mock data only** — no ML model or inference interface exists in the repository. The adapter (`src/utils/soilAnalysis.js`) is a pure frontend mock using regional soil maps and predefined suitability scores. Demo "Demo Only" banners removed from UI; genuine agricultural disclaimer retained in results panel.
 - Scaffold assets (`hero.png`, `react.svg`, `vite.svg`) were removed from `src/assets/`.
-- **Sign-in uses mock authentication** — no real backend, database, or authentication service exists. Credentials are not verified; any valid-form submission stores the selected role in `sessionStorage` and navigates to the dashboard. This is a frontend-only demo.
+- **Sign-in and Sign-up use demo authentication** — no real backend, database, or authentication service exists. Registered accounts are stored in `localStorage` with salted SHA-256 hashes (Web Crypto API). Unregistered emails use legacy demo-mode (any credentials accepted). This is a frontend-only demo; browser-side hashing does not provide production-grade security.
 
 ---
 
@@ -459,7 +538,19 @@ Slugs still using placeholder:
 | Browse Marketplace CTA | ✅ Verified | Now navigates to /login instead of /dashboard/browse-harvests |
 | Back to Homepage link | ✅ Verified | Returns to landing page |
 | Role switching persistence | ✅ Verified | Topbar role switcher writes demoRole to sessionStorage and navigates to /dashboard |
-| Sign-out | ✅ Verified | Topbar Sign out button clears sessionStorage.demoRole, resets role, navigates to /login |
+| Sign-out | ✅ Verified | Topbar Sign out button clears sessionStorage (demoRole, demoName, demoEmail) via clearSession(), resets role, navigates to /login. Registered accounts in localStorage are preserved. |
+| Sign in → Sign up navigation | ✅ Verified | "Don't have an account? Sign up" link on /login navigates to /signup |
+| Sign up → Sign in navigation | ✅ Verified | "Already have an account? Sign in" link on /signup navigates to /login |
+| Sign-up empty form validation | ✅ Verified | All required fields show inline error messages when empty |
+| Sign-up email format validation | ✅ Verified | Invalid email shows "Please enter a valid email address" |
+| Sign-up password minimum length | ✅ Verified | Passwords < 6 chars show "Password must be at least 6 characters" |
+| Sign-up password mismatch | ✅ Verified | Mismatched passwords show "Passwords do not match" |
+| Sign-up duplicate email rejection | ✅ Verified | Re-registering same email shows "An account with this email already exists" |
+| Sign-up success + redirect | ✅ Verified | Valid registration shows success banner, stores account in localStorage, starts session, navigates to /dashboard |
+| Registered account sign-in | ✅ Verified | Registered email verifies password hash; correct password → login success; wrong password → "Incorrect password" error |
+| Dashboard display name | ✅ Verified | Registered accounts show "Welcome, {name}" on DashboardHome and user name + icon in Topbar |
+| Password hashing (no plaintext) | ✅ Verified | localStorage farm2retail_accounts stores passwordHash + salt (hex strings), never plaintext password |
+| Build & Lint after sign-up feature | ✅ Verified | npm run build (0 errors, 1955 modules), npm run lint (0 errors) |
 
 **Legend**: ✅ Verified = manually tested via code inspection and/or browser execution.  
 All features implemented in code; the table above reflects manual verification of critical paths.
@@ -470,11 +561,11 @@ All features implemented in code; the table above reflects manual verification o
 
 ```
 npm run build — exit code 0
-✓ 1953 modules transformed
-dist/index.html                   0.46 kB │ gzip:   0.29 kB
-dist/assets/index-BDnx7zZc.css   35.39 kB │ gzip:   7.00 kB
-dist/assets/index-CMFQKJlk.js   441.36 kB │ gzip: 115.45 kB
-✓ built in ~1s
+✓ 1955 modules transformed
+dist/index.html                   0.46 kB │ gzip:   0.30 kB
+dist/assets/index-CVvH2EAR.css   35.21 kB │ gzip:   6.93 kB
+dist/assets/index-MNcBZOpg.js   453.33 kB │ gzip: 117.25 kB
+✓ built in ~869ms
 ```
 
 ```
@@ -488,4 +579,4 @@ npm run lint — exit code 0
 1. Add automated tests (unit/integration) for critical workflows.
 2. Add persistence (localStorage/IndexedDB) to survive browser refresh.
 3. Consider adding real ML model integration for Soil Intelligence (requires backend).
-4. Address remaining audit issues (double-submit guard, duplicate-order guard, lease endDate/endLease, cross-role identity filtering).
+4. Address remaining audit issues (cross-role identity filtering). Double-submit guard, duplicate-order guard, and lease endLease are now implemented.

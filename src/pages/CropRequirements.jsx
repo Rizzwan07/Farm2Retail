@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useNavigate } from 'react-router-dom';
 import { Plus, ClipboardList, Search, Wheat, MapPin, Calendar, IndianRupee, Flag } from 'lucide-react';
 import { cropCategories } from '../data/harvests';
 
 function CropRequirements() {
   const { requirements, setRequirements } = useOutletContext();
+  const navigate = useNavigate();
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
@@ -327,7 +328,7 @@ function CropRequirements() {
                   <div className="flex items-center gap-2 sm:ml-auto">
                     <button onClick={() => startEdit(req)} className="px-3 py-1.5 text-sm bg-green-primary/10 text-green-primary rounded hover:bg-green-primary/20 transition-colors font-medium">Edit</button>
                     <button onClick={() => handleDelete(req.id)} className="px-3 py-1.5 text-sm bg-red-50 text-red-600 rounded hover:bg-red-100 transition-colors font-medium">Delete</button>
-                    <button onClick={() => window.location.href = `/dashboard/manage-bids/${req.id}`} className="px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition-colors font-medium">Manage Bids</button>
+                    <button onClick={() => navigate(`/dashboard/manage-bids/${req.id}`)} className="px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition-colors font-medium">Manage Bids</button>
                   </div>
                 </div>
                 <div className="mt-4 pt-4 border-t border-gray-100">

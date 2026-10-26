@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Sprout, ShoppingCart, Landmark, ArrowRight, Handshake, Home } from 'lucide-react';
 
 const features = [
@@ -38,17 +38,11 @@ const howItWorks = [
 ];
 
 function HomePage() {
-  const navigate = useNavigate();
-
   function scrollToHowItWorks() {
     const element = document.getElementById('how-it-works');
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
-  }
-
-  function handleLoginClick() {
-    navigate('/login');
   }
 
   return (
@@ -60,12 +54,12 @@ function HomePage() {
             <Sprout className="w-7 h-7 text-green-primary" />
             <span className="text-xl font-bold text-green-dark">Farm2Retail</span>
           </div>
-          <button
-            onClick={handleLoginClick}
-            className="bg-green-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-dark transition-colors"
+          <Link
+            to="/signup"
+            className="bg-green-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-dark transition-colors no-underline"
           >
-            Sign in
-          </button>
+            Sign up
+          </Link>
         </div>
       </nav>
 

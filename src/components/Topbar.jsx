@@ -1,4 +1,4 @@
-import { Menu, ChevronDown } from 'lucide-react';
+import { Menu, ChevronDown, UserCircle } from 'lucide-react';
 
 const roles = [
   { value: 'farmer', label: 'Farmer' },
@@ -6,7 +6,7 @@ const roles = [
   { value: 'landowner', label: 'Landowner' },
 ];
 
-function Topbar({ onMenuClick, currentRole, onRoleChange, onSignOut }) {
+function Topbar({ onMenuClick, currentRole, onRoleChange, onSignOut, displayName }) {
   return (
     <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-6 shrink-0">
       {/* Left side */}
@@ -21,8 +21,14 @@ function Topbar({ onMenuClick, currentRole, onRoleChange, onSignOut }) {
         <h2 className="text-lg font-semibold text-green-dark hidden sm:block">Dashboard</h2>
       </div>
 
-      {/* Right side — Role Switcher */}
+      {/* Right side — User name + Role Switcher */}
       <div className="flex items-center gap-3">
+        {displayName && (
+          <div className="hidden sm:flex items-center gap-1.5 text-sm text-gray-700 font-medium">
+            <UserCircle className="w-5 h-5 text-green-primary" />
+            <span>{displayName}</span>
+          </div>
+        )}
         <label htmlFor="role-select" className="text-sm text-gray-500 hidden sm:inline">
           Viewing as:
         </label>
