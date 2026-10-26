@@ -171,7 +171,7 @@ function SoilIntelligence() {
           {/* Error message */}
           {error && (
             <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2 text-red-700">
-              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
               <span className="text-sm">{error}</span>
             </div>
           )}
@@ -231,7 +231,7 @@ function SoilIntelligence() {
           {/* Error if any */}
           {error && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2 text-red-700">
-              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
               <span className="text-sm">{error}</span>
             </div>
           )}
@@ -265,7 +265,7 @@ function SoilIntelligence() {
               
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <p className="text-sm text-blue-800 flex items-center gap-1">
-                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  <AlertCircle className="w-4 h-4 shrink-0" />
                   <span>{result.disclaimer}</span>
                 </p>
               </div>

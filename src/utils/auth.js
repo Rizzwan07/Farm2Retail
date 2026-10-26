@@ -16,6 +16,21 @@
  */
 
 const ACCOUNTS_KEY = 'farm2retail_accounts';
+const VALID_ROLES = ['farmer', 'retailer', 'landowner'];
+
+/**
+ * Normalize email for consistent lookup and storage.
+ */
+function normalizeEmail(email) {
+  return email.trim().toLowerCase();
+}
+
+/**
+ * Validate that a role is one of the allowed values.
+ */
+function isValidRole(role) {
+  return VALID_ROLES.includes(role);
+}
 
 // ---------------------------------------------------------------------------
 // Helpers — password hashing with Web Crypto API
@@ -69,13 +84,15 @@ function saveAccounts(accounts) {
 // Public API
 // ---------------------------------------------------------------------------
 
+export { VALID_ROLES, normalizeEmail, isValidRole };
+
 /**
  * Look up an account by email (case-insensitive).
  * Returns the account object or undefined.
  */
 export function findAccountByEmail(email) {
   const accounts = getAccounts();
-  const needle = email.trim().toLowerCase();
+  const needle = normalizeEmail(email);
   return accounts.find((a) => a.email === needle);
 }
 
@@ -86,7 +103,12 @@ export function findAccountByEmail(email) {
  * @returns {Promise<{ success: boolean, error?: string, account?: object }>}
  */
 export async function registerAccount({ fullName, email, password, role }) {
-  const normalizedEmail = email.trim().toLowerCase();
+  const normalizedEmail = normalizeEmail(email);
+
+  // Validate role
+  if (!isValidRole(role)) {
+    return { success: false, error: 'Invalid role selected' };
+  }
 
   // Check for duplicate email
   if (findAccountByEmail(normalizedEmail)) {
@@ -140,6 +162,9 @@ export async function verifyAccount(email, password) {
  * Stores role, display name, and email in sessionStorage.
  */
 export function startSession(account) {
+  if (!isValidRole(account.role)) {
+    throw new Error('Invalid account role');
+  }
   sessionStorage.setItem('demoRole', account.role);
   sessionStorage.setItem('demoName', account.fullName);
   sessionStorage.setItem('demoEmail', account.email);

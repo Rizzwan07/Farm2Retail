@@ -11,8 +11,8 @@ const roleOptions = [
 
 function Login() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('rizz1@email.com');
-  const [password, setPassword] = useState('pass@1234');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [selectedRole, setSelectedRole] = useState('farmer');
   const [errors, setErrors] = useState({});
@@ -31,9 +31,10 @@ function Login() {
 
   function validateForm() {
     const newErrors = {};
-    if (!email.trim()) {
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
       newErrors.email = 'Email is required';
-    } else if (!validateEmail(email)) {
+    } else if (!validateEmail(trimmedEmail)) {
       newErrors.email = 'Please enter a valid email address';
     }
     if (!password) {
@@ -47,33 +48,36 @@ function Login() {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    // Prevent duplicate submissions
+    if (isSubmitting) return;
+    // Clear stale errors on new attempt
+    setErrors({});
     if (!validateForm()) return;
     setIsSubmitting(true);
 
+    const normalizedEmail = email.trim().toLowerCase();
+
     // Check if this email belongs to a registered account
-    const registeredAccount = findAccountByEmail(email);
+    const registeredAccount = findAccountByEmail(normalizedEmail);
 
-    if (registeredAccount) {
-      // Verify credentials against the stored hash
-      const result = await verifyAccount(email, password);
-
-      if (!result.success) {
-        setErrors({ password: result.error });
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Establish session with the registered account's role and name
-      startSession(result.account);
-      navigate('/dashboard');
-    } else {
-      // No registered account found — use the legacy demo-mode behavior:
-      // accept any credentials and use the selected role.
-      setTimeout(() => {
-        sessionStorage.setItem('demoRole', selectedRole);
-        navigate('/dashboard');
-      }, 500);
+    if (!registeredAccount) {
+      setErrors({ email: 'No account found with this email' });
+      setIsSubmitting(false);
+      return;
     }
+
+    // Verify credentials against the stored hash
+    const result = await verifyAccount(normalizedEmail, password);
+
+    if (!result.success) {
+      setErrors({ password: result.error });
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Establish session with the registered account's role and name
+    startSession(result.account);
+    navigate('/dashboard');
   }
 
   function getInputClass(name) {
@@ -267,11 +271,6 @@ function Login() {
             </Link>
           </div>
         </form>
-
-        {/* Demo Notice - subtle */}
-        <p className="mt-6 text-center text-xs text-gray-500">
-          Demo mode — any credentials work. Role selection determines dashboard view.
-        </p>
       </div>
     </div>
   );

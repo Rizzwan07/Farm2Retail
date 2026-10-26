@@ -42,14 +42,15 @@ function SignUp() {
 
   function validateForm() {
     const newErrors = {};
+    const trimmedEmail = email.trim();
 
     if (!fullName.trim()) {
       newErrors.fullName = 'Full name is required';
     }
 
-    if (!email.trim()) {
+    if (!trimmedEmail) {
       newErrors.email = 'Email is required';
-    } else if (!validateEmail(email)) {
+    } else if (!validateEmail(trimmedEmail)) {
       newErrors.email = 'Please enter a valid email address';
     }
 
@@ -75,6 +76,10 @@ function SignUp() {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    // Prevent duplicate submissions
+    if (isSubmitting) return;
+    // Clear stale errors on new attempt
+    setErrors({});
     setSuccessMessage('');
     if (!validateForm()) return;
 
@@ -83,9 +88,11 @@ function SignUp() {
     // Small delay for UX consistency with the sign-in page
     await new Promise((r) => setTimeout(r, 400));
 
+    const normalizedEmail = email.trim().toLowerCase();
+
     const result = await registerAccount({
       fullName,
-      email,
+      email: normalizedEmail,
       password,
       role: selectedRole,
     });

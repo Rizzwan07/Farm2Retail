@@ -3,7 +3,7 @@ import { Navigate, Outlet, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import { sampleHarvests } from '../data/harvests';
-import { clearSession } from '../utils/auth';
+import { clearSession, VALID_ROLES } from '../utils/auth';
 
 // Sample crop requirements data
 const sampleRequirements = [
@@ -110,15 +110,17 @@ function DashboardLayout() {
   const [leases, setLeases] = useState([]);
   const navigate = useNavigate();
 
-  // Require a stored demo role to open any dashboard page.
-  // Direct URL access without a stored role is redirected to sign-in.
-  if (!storedRole) {
+  // Validate stored role - redirect to login if invalid or missing
+  if (!storedRole || !VALID_ROLES.includes(storedRole)) {
     return <Navigate to="/login" replace />;
   }
 
   // When the role changes, persist it, navigate back to the dashboard home
   // so the user doesn't stay on a page that belongs to another role
   function handleRoleChange(newRole) {
+    if (!VALID_ROLES.includes(newRole)) {
+      return;
+    }
     sessionStorage.setItem('demoRole', newRole);
     setCurrentRole(newRole);
     navigate('/dashboard');
