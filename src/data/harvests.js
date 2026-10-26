@@ -69,7 +69,7 @@ export const sampleHarvests = [
     id: 5,
     crop: 'Potatoes',
     category: 'Vegetables',
-    image: 'https://images.unsplash.com/photo-1518977676601-b53f82ae654b?w=400&h=300&fit=crop',
+    image: 'https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?w=400&h=300&fit=crop',
     quantity: 3000,
     unit: 'kg',
     pricePerKg: 20,
