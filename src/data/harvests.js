@@ -1,6 +1,12 @@
 // Mock harvest data for the Farm2Retail demo.
 // This file provides seed data and helper functions for in-memory state.
 // No backend or database — everything lives in JavaScript arrays.
+// Crop images are local SVG assets (src/assets/*.svg) so they are reliably
+// included in the Vite production build and always depict the correct crop.
+
+import tomatoImage from '../assets/tomatoes.svg?url';
+import potatoImage from '../assets/potatoes.svg?url';
+import turmericImage from '../assets/turmeric.svg?url';
 
 export const cropCategories = [
   'All',
@@ -17,7 +23,7 @@ export const sampleHarvests = [
     id: 1,
     crop: 'Tomatoes',
     category: 'Vegetables',
-    image: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=400&h=300&fit=crop',
+    image: tomatoImage,
     quantity: 500,
     unit: 'kg',
     pricePerKg: 35,
@@ -69,7 +75,7 @@ export const sampleHarvests = [
     id: 5,
     crop: 'Potatoes',
     category: 'Vegetables',
-    image: 'https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?w=400&h=300&fit=crop',
+    image: potatoImage,
     quantity: 3000,
     unit: 'kg',
     pricePerKg: 20,
@@ -82,7 +88,7 @@ export const sampleHarvests = [
     id: 6,
     crop: 'Turmeric',
     category: 'Spices',
-    image: 'https://images.unsplash.com/photo-1615485500704-8e990f9900f7?w=400&h=300&fit=crop',
+    image: turmericImage,
     quantity: 400,
     unit: 'kg',
     pricePerKg: 95,

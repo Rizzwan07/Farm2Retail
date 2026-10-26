@@ -2,14 +2,17 @@ import { useOutletContext } from 'react-router-dom';
 import { MapPin, DollarSign, Calendar, User, Home, Clock, FileText, Trash2 } from 'lucide-react';
 
 function LeaseManagement() {
-  const { currentRole, leases, setLeases, properties, setProperties } = useOutletContext();
+  const { currentRole, leases, setLeases, properties, setProperties, demoIdentities } = useOutletContext();
+
+  // Determine the current user's landowner identity
+  const currentLandownerIdentity = demoIdentities.landowner;
 
   // Filter leases based on role
   let myLeases = leases;
   if (currentRole === 'farmer') {
     myLeases = leases.filter((l) => l.farmer === 'You (Demo Farmer)');
   } else if (currentRole === 'landowner') {
-    myLeases = leases.filter((l) => l.landowner === 'You (Demo Landowner)');
+    myLeases = leases.filter((l) => l.landowner === currentLandownerIdentity);
   }
 
   // End lease early

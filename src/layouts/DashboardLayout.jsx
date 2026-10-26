@@ -5,6 +5,13 @@ import Topbar from '../components/Topbar';
 import { sampleHarvests } from '../data/harvests';
 import { clearSession, VALID_ROLES } from '../utils/auth';
 
+// Demo identity constants for consistent role-based filtering
+const DEMO_IDENTITIES = {
+  farmer: 'You (Demo Farmer)',
+  retailer: 'You (Demo Retailer)',
+  landowner: 'You (Demo Landowner)',
+};
+
 // Sample crop requirements data
 const sampleRequirements = [
   {
@@ -53,7 +60,7 @@ const sampleProperties = [
     permittedCrops: 'Grapes, Tomatoes, Onions, Pomegranate',
     description: 'Well-maintained farmland with excellent road access. Ideal for horticulture crops. Soil tested recently.',
     images: ['https://images.unsplash.com/photo-1626228666783-5e3251db91b6?w=800&h=600&fit=crop'],
-    landowner: 'Rajesh Landowner',
+    landowner: 'You (Demo Landowner)',
     status: 'Available',
     createdAt: '2026-10-05',
   },
@@ -71,7 +78,7 @@ const sampleProperties = [
     permittedCrops: 'Rice, Wheat, Sugarcane, Vegetables',
     description: 'Prime agricultural land near canal. High water table. Suitable for multiple cropping seasons.',
     images: ['https://images.unsplash.com/photo-1574518371418-2c157c9dc5b3?w=800&h=600&fit=crop'],
-    landowner: 'Rajesh Landowner',
+    landowner: 'You (Demo Landowner)',
     status: 'Available',
     createdAt: '2026-10-08',
   },
@@ -89,7 +96,7 @@ const sampleProperties = [
     permittedCrops: 'Turmeric, Banana, Coconut, Vegetables',
     description: 'Organic certified land. Perfect for high-value spices and fruits. Certification valid till 2027.',
     images: ['https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&h=600&fit=crop'],
-    landowner: 'Rajesh Landowner',
+    landowner: 'You (Demo Landowner)',
     status: 'Available',
     createdAt: '2026-10-12',
   },
@@ -153,7 +160,7 @@ function DashboardLayout() {
 
         {/* Page content — renders the matched child route */}
         <main className="flex-1 p-4 sm:p-6 overflow-y-auto">
-          <Outlet context={{ currentRole, displayName: storedName, harvests, setHarvests, bookings, setBookings, requirements, setRequirements, bids, setBids, orders, setOrders, properties, setProperties, leaseApplications, setLeaseApplications, leases, setLeases }} />
+          <Outlet context={{ currentRole, displayName: storedName, demoIdentities: DEMO_IDENTITIES, harvests, setHarvests, bookings, setBookings, requirements, setRequirements, bids, setBids, orders, setOrders, properties, setProperties, leaseApplications, setLeaseApplications, leases, setLeases }} />
         </main>
       </div>
     </div>

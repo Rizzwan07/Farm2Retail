@@ -2,14 +2,14 @@ import { useOutletContext } from 'react-router-dom';
 import { Wheat, MapPin, Calendar, IndianRupee, User, Package, CheckCircle } from 'lucide-react';
 
 function Orders() {
-  const { currentRole, orders, setOrders } = useOutletContext();
+  const { currentRole, orders, setOrders, demoIdentities } = useOutletContext();
 
   // Filter orders relevant to current role
   let myOrders = orders;
   if (currentRole === 'farmer') {
-    myOrders = orders.filter((o) => o.farmer === 'You (Demo Farmer)');
+    myOrders = orders.filter((o) => o.farmer === demoIdentities.farmer);
   } else if (currentRole === 'retailer') {
-    myOrders = orders.filter((o) => o.retailer === 'You (Demo Retailer)');
+    myOrders = orders.filter((o) => o.retailer === demoIdentities.retailer);
   }
 
   const stages = ['Farmer Selected', 'Growing', 'Ready for Harvest', 'Delivered'];

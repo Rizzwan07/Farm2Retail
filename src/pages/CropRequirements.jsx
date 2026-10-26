@@ -4,7 +4,7 @@ import { Plus, ClipboardList, Search, Wheat, MapPin, Calendar, IndianRupee, Flag
 import { cropCategories } from '../data/harvests';
 
 function CropRequirements() {
-  const { requirements, setRequirements } = useOutletContext();
+  const { requirements, setRequirements, demoIdentities } = useOutletContext();
   const navigate = useNavigate();
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -20,6 +20,7 @@ function CropRequirements() {
   });
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
 
@@ -56,8 +57,14 @@ function CropRequirements() {
 
   function handleSubmit(e) {
     e.preventDefault();
+    // Prevent duplicate submissions
+    if (isSubmitting) return;
+    // Clear stale errors on new attempt
+    setErrors({});
     setSubmitted(true);
     if (!validateForm()) return;
+
+    setIsSubmitting(true);
 
     if (editingId) {
       // Update existing requirement
@@ -73,13 +80,14 @@ function CropRequirements() {
         ...formData,
         quantity: Number(formData.quantity),
         targetPrice: Number(formData.targetPrice),
-        retailer: 'You (Demo Retailer)',
+        retailer: demoIdentities.retailer,
         status: 'Open',
         createdAt: new Date().toISOString().split('T')[0],
       };
       setRequirements((prev) => [newReq, ...prev]);
     }
 
+    setIsSubmitting(false);
     resetForm();
   }
 

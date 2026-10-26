@@ -9,29 +9,41 @@ A **frontend-only** agricultural marketplace prototype that connects three user 
 ## Features
 
 ### Farmer
-- Create and manage harvest listings with crop details, quantity, price, and harvest date
+- Create, **edit**, and manage harvest listings with crop details, quantity, price, harvest date, **description, and optional image upload**
 - View bookings made on listed harvests by retailers
-- Browse retailer crop requirements and submit competitive bids
-- Discover available farmland and submit lease applications
+- Browse retailer crop requirements and submit competitive bids with **proposed price, quantity, harvest date, and message**
+- Discover available farmland and submit lease applications with **proposed rent, duration, and message**
 - Use **Soil Intelligence** for mock soil classification and crop recommendations based on location
+- **Duplicate submission prevention** on all forms with loading states and stale error clearing
 
 ### Retailer
 - Browse available harvest listings with filtering by category and location
-- Book produce quantities from farmers with instant total calculation
-- View and cancel active bookings
-- Post crop requirements for grow-to-order supply with quality specifications
-- Review farmer bids and accept the best offer to create tracked orders
+- Book produce quantities from farmers with instant total calculation and **stock validation**
+- View and cancel active bookings with **stock restoration** and confirmation dialogs
+- Post crop requirements for grow-to-order supply with quality specifications, **target price, location, and required-by date**
+- Review farmer bids in a structured table and **accept/reject with processing guards**
+- Accepting a bid auto-rejects other pending bids, **creates an order**, and updates requirement status
+- Track grow-to-order progress through **4 stages**: Farmer Selected → Growing → Ready for Harvest → Delivered
 
 ### Landowner
-- Create and manage farmland property listings with acreage, rent, soil type, and irrigation details
-- Review and approve or reject farmer lease applications
-- View active leases with tenant details and lease terms
+- Create, **edit**, and manage farmland property listings with acreage, rent, soil type, irrigation, **permitted crops, description, and optional image upload**
+- Review and approve or reject farmer lease applications with **processing guards**
+- Approving an application auto-rejects other pending applications for the same property, **creates a lease**, and updates property status to **Leased**
+- View active and past leases with tenant details, lease terms, **days remaining, and end-early option**
+- Ending a lease early makes the property **Available** again
 
 ### Shared Marketplace Workflows
 1. **Harvest Pre-Booking** — Farmers list upcoming harvests; retailers pre-book quantities before harvest
-2. **Grow-to-Order Bidding** — Retailers post requirements; farmers bid; retailers accept bids to create orders
+2. **Grow-to-Order Bidding** — Retailers post requirements; farmers bid; retailers accept bids to create tracked orders
 3. **Farmland Leasing** — Landowners list properties; farmers apply; landowners approve to create leases
 4. **Soil Intelligence** — Farmers enter location and area to receive simulated soil classification and crop recommendations
+
+### Cross-Cutting Improvements
+- **Consistent demo identity constants** (`You (Demo Farmer)`, `You (Demo Retailer)`, `You (Demo Landowner)`) shared across all pages via Outlet context
+- **Form submission guards** (`isSubmitting`) prevent duplicate submissions on all forms
+- **Stale error clearing** on retry attempts
+- **Email normalization** (trim + lowercase) for registration and login
+- **Role validation** on init and switch — invalid roles redirect to `/login`
 
 ---
 
@@ -99,34 +111,36 @@ npm run dev -- --port 5174
 
 ## Running the Application
 
-1. Open the home page and select **Browse Marketplace** or **Sign Up**
-2. Enter any valid-looking email and a password with **at least 6 characters**, or select **Sign Up** to create a registered demo account
-3. Select a demo role: **Farmer**, **Retailer**, or **Landowner**
-4. Use the dashboard sidebar to navigate features for that role
-5. Use the role selector in the topbar to switch workspaces
-6. Select **Sign Out** to clear the demo role and return to the login page
+1. Open the home page and select **Browse Marketplace**, **Sign In**, or **Sign Up**
+2. **Sign Up**: Enter full name, email, password (≥6 chars), confirm password, select role → creates registered account with salted SHA-256 hash
+3. **Sign In**: Enter email and password → registered accounts verify against stored hash; unregistered emails are **rejected**
+4. Select a demo role: **Farmer**, **Retailer**, or **Landowner** (if using unregistered email with legacy demo-mode, not applicable for registered accounts)
+5. Use the dashboard sidebar to navigate features for that role
+6. Use the role selector in the topbar to switch workspaces
+7. Select **Sign Out** to clear the demo role and return to the login page
 
 **Demo Notes:**
-- Any email/password combination works in demo mode (unregistered emails)
 - Registered accounts verify passwords using salted SHA-256 hashes via Web Crypto API
 - Registered account profiles persist in `localStorage` across browser refreshes
 - The selected role is stored in `sessionStorage` under `demoRole`
 - Dashboard records are held in React memory and reset on page refresh
 - Prices and totals are illustrative — no payment gateway exists
+- **Form submissions are guarded** against rapid duplicate clicks
+- **Validation errors clear automatically** when retrying after a failed submission
 
 ---
 
 ## How the Application Works
 
 ### Login, Sign Up & Role Access
-`Login.jsx` validates the demo form and stores the selected role in `sessionStorage`. If the email belongs to a registered account (stored in `localStorage`), the password is verified against a salted SHA-256 hash. Unregistered emails use legacy demo-mode behavior (any credentials accepted). `SignUp.jsx` creates new demo accounts via `src/utils/auth.js`, hashing passwords with the Web Crypto API before storing them. `DashboardLayout.jsx` checks for a stored role before rendering dashboard routes and redirects to `/login` when missing.
+`Login.jsx` validates the form and stores the selected role in `sessionStorage`. If the email belongs to a registered account (stored in `localStorage`), the password is verified against a salted SHA-256 hash. **Unregistered emails are rejected** with "No account found with this email". `SignUp.jsx` creates new demo accounts via `src/utils/auth.js`, hashing passwords with the Web Crypto API before storing them. `DashboardLayout.jsx` checks for a stored role before rendering dashboard routes and redirects to `/login` when missing or invalid.
 
 ### Shared Dashboard State
 `DashboardLayout.jsx` initializes all marketplace entities with `useState`:
 - `harvests`, `bookings`, `requirements`, `bids`, `orders`
 - `properties`, `leaseApplications`, `leases`
 
-These values and setters are passed to route pages through React Router's `Outlet` context. This enables actions in one role's workspace to appear immediately in another workspace during the same browser session (e.g., a farmer creating a harvest appears in the retailer's browse view instantly).
+These values and setters are passed to route pages through React Router's `Outlet` context along with `demoIdentities` for consistent role-based filtering. This enables actions in one role's workspace to appear immediately in another workspace during the same browser session (e.g., a farmer creating a harvest appears in the retailer's browse view instantly).
 
 ### Soil Intelligence
 `src/utils/soilAnalysis.js` is a mock adapter that:
@@ -167,7 +181,7 @@ flowchart TD
     Outlet --> Landowner[Landowner Features]
     Shell --> State[React useState\nShared Marketplace State]
     State --> SeedData["JavaScript Seed Data\nharvests.js + inline"]
-    Public --> LocalStorage["localStorage\nRegistered Accounts"]
+    Public --> LocalStorage["localStorage\nRegistered Accounts (hashed)"]
     Outlet --> Soil["Mock Soil Analysis\nsrc/utils/soilAnalysis.js"]
     State -. browser refresh clears data .-> Reset[Fresh Demo State]
 ```
@@ -204,23 +218,23 @@ erDiagram
 | Route | Purpose | Role Access |
 |-------|---------|-------------|
 | `/` | Public landing page | All |
-| `/login` | Demo role selection & sign-in | All |
+| `/login` | Demo role selection & sign-in (registered accounts only) | All |
 | `/signup` | New account registration | All |
 | `/dashboard` | Role-specific dashboard home | All |
-| `/dashboard/my-harvests` | Farmer harvest listings | Farmer |
+| `/dashboard/my-harvests` | Farmer harvest listings (create/edit/delete) | Farmer |
 | `/dashboard/browse-harvests` | Retailer harvest search | Retailer |
 | `/dashboard/harvest/:id` | Harvest details & booking | Farmer, Retailer |
 | `/dashboard/my-bookings` | Farmer view of harvest bookings | Farmer |
 | `/dashboard/retailer-bookings` | Retailer booking management | Retailer |
-| `/dashboard/crop-requirements` | Retailer crop requirements | Retailer |
+| `/dashboard/crop-requirements` | Retailer crop requirements (create/edit/delete) | Retailer |
 | `/dashboard/crop-bids` | Farmer bid submission | Farmer |
 | `/dashboard/manage-bids/:id` | Retailer bid management | Retailer |
-| `/dashboard/orders` | Grow-to-order tracking | Retailer |
-| `/dashboard/my-properties` | Landowner property listings | Landowner |
+| `/dashboard/orders` | Grow-to-order tracking | Farmer, Retailer |
+| `/dashboard/my-properties` | Landowner property listings (create/edit/delete) | Landowner |
 | `/dashboard/find-farmland` | Farmer farmland search | Farmer |
 | `/dashboard/property/:id` | Property details & lease application | Farmer, Landowner |
-| `/dashboard/lease-applications` | Lease application management | Landowner |
-| `/dashboard/lease-management` | Active lease overview | Landowner |
+| `/dashboard/lease-applications` | Lease application management | Farmer, Landowner |
+| `/dashboard/lease-management` | Active lease overview | Farmer, Landowner |
 | `/dashboard/soil-intelligence` | Mock soil analysis | Farmer |
 
 Unimplemented dashboard slugs are handled by `PlaceholderPage.jsx`.
@@ -235,19 +249,20 @@ Farm2Retail/
 │   ├── favicon.svg
 │   └── icons.svg
 ├── src/
+│   ├── assets/                     # Local image assets (optional)
 │   ├── components/                 # Reusable UI components
 │   │   ├── Sidebar.jsx             # Role-based navigation drawer
 │   │   └── Topbar.jsx              # Header with role switcher
 │   ├── data/                       # Sample/mock data
 │   │   └── harvests.js             # Seed harvest listings + helpers
 │   ├── layouts/                    # Page layout shells
-│   │   └── DashboardLayout.jsx     # Shared shell + all marketplace state
+│   │   └── DashboardLayout.jsx     # Shared shell + all marketplace state + demoIdentities
 │   ├── pages/                      # Route-level components
 │   │   ├── HomePage.jsx            # Landing page
 │   │   ├── Login.jsx               # Demo sign-in with role selection
 │   │   ├── SignUp.jsx              # New account registration
 │   │   ├── DashboardHome.jsx       # Dashboard overview
-│   │   ├── MyHarvests.jsx          # Farmer: list/manage harvests
+│   │   ├── MyHarvests.jsx          # Farmer: list/manage harvests (with edit)
 │   │   ├── BrowseHarvests.jsx      # Retailer: search harvests
 │   │   ├── HarvestDetails.jsx      # Harvest view + booking
 │   │   ├── MyBookings.jsx          # Farmer: view bookings
@@ -255,8 +270,8 @@ Farm2Retail/
 │   │   ├── CropRequirements.jsx    # Retailer: post requirements
 │   │   ├── CropBids.jsx            # Farmer: bid on requirements
 │   │   ├── ManageBids.jsx          # Retailer: review/accept bids
-│   │   ├── Orders.jsx              # Retailer: track orders
-│   │   ├── MyProperties.jsx        # Landowner: list properties
+│   │   ├── Orders.jsx              # Track orders
+│   │   ├── MyProperties.jsx        # Landowner: list properties (with edit, image upload)
 │   │   ├── FindFarmland.jsx        # Farmer: search farmland
 │   │   ├── PropertyDetails.jsx     # Property view + lease apply
 │   │   ├── LeaseApplications.jsx   # Landowner: review applications
@@ -320,9 +335,10 @@ npm run build
 - Demo role is stored in `sessionStorage` under `demoRole`
 - Prices and booking totals are illustrative — **no payment gateway or refund workflow**
 - Soil Intelligence uses regional hardcoded mappings and suitability scores — **not a laboratory test or ML model**
-- Ending a lease displays a demo alert rather than updating lease state
-- Approving a lease application does not update the property's own status field
-- No image upload — property/harvest images use external Unsplash URLs
+- No image upload persistence — images stored as base64 data URLs in React state only (lost on refresh)
+- Role checks are UI/navigation only — no server-side authorization. Direct URL access to `/dashboard/*` routes only guarded by `demoRole` existence and validity, not by role-specific permissions.
+- No password recovery / reset flow for registered accounts
+- No email verification step during registration
 
 ---
 
