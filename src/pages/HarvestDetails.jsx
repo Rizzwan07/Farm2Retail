@@ -14,7 +14,7 @@ import {
 
 function HarvestDetails() {
   const { id } = useParams();
-  const { harvests, setHarvests, setBookings } = useOutletContext();
+  const { harvests, setHarvests, setBookings, demoIdentities } = useOutletContext();
   const [quantity, setQuantity] = useState(10);
   const [booked, setBooked] = useState(false);
   const [booking, setBooking] = useState(false);
@@ -59,6 +59,7 @@ function HarvestDetails() {
       harvestId: harvest.id,
       crop: harvest.crop,
       farmer: harvest.farmer,
+      retailer: demoIdentities.retailer,
       quantity: quantity,
       unit: harvest.unit,
       pricePerKg: harvest.pricePerKg,

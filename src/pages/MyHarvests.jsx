@@ -4,7 +4,7 @@ import { Plus, X, Wheat, MapPin, Calendar, IndianRupee, AlertCircle, Package, Tr
 import { cropCategories, generateId } from '../data/harvests';
 
 function MyHarvests() {
-  const { harvests, setHarvests, bookings } = useOutletContext();
+  const { harvests, setHarvests, bookings, demoIdentities } = useOutletContext();
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
@@ -23,6 +23,9 @@ function MyHarvests() {
   const [imageError, setImageError] = useState('');
   const [imagePreview, setImagePreview] = useState('');
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+
+  // Filter harvests to only show those owned by the current demo farmer
+  const myHarvests = harvests.filter((h) => h.farmer === demoIdentities.farmer);
 
   // Handle form field changes
   function handleChange(e) {
@@ -426,15 +429,15 @@ function MyHarvests() {
         </form>
       )}
 
-      {/* Harvest listings grid */}
-      {harvests.length === 0 ? (
+{/* Harvest listings grid */}
+      {myHarvests.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
           <Wheat className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500">No harvest listings yet. Click &quot;Add Harvest&quot; to create your first listing.</p>
+          <p className="text-gray-500">No harvest listings yet. Click "Add Harvest" to create your first listing.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-{harvests.map((harvest) => {
+{myHarvests.map((harvest) => {
               // Calculate bookings for this harvest
               const harvestBookings = bookings.filter((b) => b.harvestId === harvest.id);
               const totalBookedQty = harvestBookings.reduce((sum, b) => sum + b.quantity, 0);
